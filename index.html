@@ -1,0 +1,345 @@
+<html lang="tr"><script src="https://pygame-web.github.io/cdn/0.9.3/pythons.js" type=module id="site" data-python="python3.12" data-LINES=42 data-COLUMNS=132 data-os="snd,gui" async defer>#<!--
+
+print("EvolveArena web 0.9.3")
+
+import sys
+import asyncio
+import platform
+import json
+from pathlib import Path
+
+# do not rename
+async def custom_site():
+    import embed
+    platform.document.body.style.background = "#05060c"
+
+    bundle = "game"
+    appdir = Path(f"/data/data/{bundle}")
+    appdir.mkdir()
+
+    platform.window.evoStatus("Oyun açılıyor...")
+    import tarfile
+    async with platform.fopen("game.tar.gz", "rb") as archive:
+        tar = tarfile.open(fileobj=archive, mode="r:gz")
+        tar.extractall(path=appdir.as_posix(), filter='tar')
+        tar.close()
+
+    platform.run_main(PyConfig, loaderhome= appdir / "assets", loadermain=None)
+
+    while embed.counter()<0:
+        await asyncio.sleep(.1)
+
+    main = appdir / "assets" / "main.py"
+    __import__(__name__).__file__ = main
+
+    # iPhone sesi yalnız bir dokunuştan sonra açar: "DOKUN" ekranı
+    if not platform.window.MM.UME:
+        platform.window.evoAskTap()
+        while not platform.window.MM.UME:
+            await asyncio.sleep(.1)
+
+    platform.window.evoStatus("Hazırlanıyor...")
+    await TopLevel_async_handler.start_toplevel(platform.shell, console=False)
+    __import__(__name__).__file__ = main
+
+    def ui_callback(pkg):
+        platform.window.evoStatus("Yükleniyor: " + str(pkg))
+
+    await shell.source(main, callback=ui_callback)
+    print("evo.tmpl: done")
+
+asyncio.run( custom_site() )
+
+
+
+# BEGIN BLOCK
+#
+# do not alter that comment block it is separating python code from html code
+# =============================================================================
+# --></script><head><!--
+//=============================================================================
+//
+//
+//
+//
+//
+//
+//
+
+--><script type="application/javascript">
+// END BLOCK
+
+config = {
+    xtermjs : 0 ,
+    _sdl2 : "canvas",
+    user_canvas : 0,
+    user_canvas_managed : 1,
+    gui_divider : 1,
+    ume_block : 0,      // "dokun ve başla" beklenmez; ses ilk dokunuşta açılır
+    can_close : 0,
+    archive : "game",
+    gui_debug : 1,
+    // Python çalışma motoru pygbag'in kendi sunucusundan gelir (bütün
+    // pygbag oyunları gibi). Böylece GitHub'a yalnızca birkaç düz dosya
+    // yüklenir; klasör yüklemek gerekmez.
+    cdn : "https://pygame-web.github.io/cdn/0.9.3/",
+    autorun : 0,
+    PYBUILD : "3.12",
+    fb_ar   :  1.7777,
+    fb_width : "1280",
+    fb_height : "720"
+}
+
+function evoStatus(t) {
+    var e = document.getElementById("evo_msg"); if (e) e.textContent = t;
+}
+function evoAskTap() {
+    var s = document.getElementById("evo_tap"); if (s) s.style.display = "flex";
+    var b = document.getElementById("evo_bar"); if (b) b.style.display = "none";
+    evoStatus("");
+}
+function evoHideSplash() {
+    var s = document.getElementById("evo_splash"); if (s) s.style.display = "none";
+}
+window.evoStatus = evoStatus; window.evoAskTap = evoAskTap; window.evoHideSplash = evoHideSplash;
+
+function show_infobox() {}
+
+// --- tuvali ekrana sığdır: tuval telefonun oranında açılır (oyun ayarlar),
+//     ekranın TAMAMINI kaplar; çentik payını oyun kendisi bırakır ---
+function evoFit() {
+    var c = document.getElementById("canvas");
+    if (!c) return;
+    var W = window.innerWidth, H = window.innerHeight;
+    var ar = (c.width > 16 && c.height > 16) ? (c.width / c.height) : (16 / 9);
+    var w = W, h = w / ar;
+    if (h > H) { h = H; w = h * ar; }
+    w = Math.round(w); h = Math.round(h);
+    c.style.position = "absolute";
+    c.style.margin = "0";
+    c.style.right = "auto"; c.style.bottom = "auto";
+    c.style.width = w + "px"; c.style.height = h + "px";
+    c.style.left = Math.floor((W - w) / 2) + "px";
+    c.style.top = Math.floor((H - h) / 2) + "px";
+}
+window.evoFit = evoFit;
+window.window_resize = evoFit;
+window.addEventListener("resize", function(){ setTimeout(evoFit, 50); });
+window.addEventListener("orientationchange", function(){ setTimeout(evoFit, 300); });
+setInterval(evoFit, 1500);
+
+// Çevrimdışı önbellek: ikinci açılıştan itibaren motor telefondan yüklenir
+if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+    window.addEventListener("load", function(){
+        navigator.serviceWorker.register("sw.js").catch(function(e){ console.warn("sw", e); });
+    });
+}
+
+// iPhone: uygulamaya geri dönülünce ses yeniden açılsın
+function evoResumeAudio() {
+    try {
+        var M = window.Module || (window.python && window.python.Module);
+        var ac = M && M.SDL2 && M.SDL2.audioContext;
+        if (ac && ac.state !== "running") ac.resume();
+    } catch (e) {}
+}
+document.addEventListener("visibilitychange", function(){ if (!document.hidden) evoResumeAudio(); });
+window.addEventListener("touchend", evoResumeAudio, {passive: true});
+window.addEventListener("pointerup", evoResumeAudio, {passive: true});
+window.addEventListener("pageshow", evoResumeAudio);
+
+// iOS: çift dokunuşla yakınlaştırma, sıkıştırma ve sayfa kaydırma kapalı
+document.addEventListener("gesturestart", function(e){ e.preventDefault(); }, {passive:false});
+document.addEventListener("dblclick", function(e){ e.preventDefault(); }, {passive:false});
+document.addEventListener("touchmove", function(e){
+    if (!e.target || e.target.tagName !== "INPUT") e.preventDefault(); }, {passive:false});
+</script>
+
+    <title>EvolveArena</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="EvolveArena">
+    <meta name="theme-color" content="#05060c">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="apple-touch-icon" href="icon-180.png">
+    <link rel="icon" type="image/png" href="icon-32.png">
+
+    <style>
+        html, body {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            overflow: hidden; background: #05060c; color: #e8ecff;
+            font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
+            touch-action: none; overscroll-behavior: none;
+            -webkit-user-select: none; user-select: none;
+            -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent;
+            -webkit-text-size-adjust: 100%;
+        }
+        #evo_safe {
+            position: fixed; left: 0; top: 0; width: 0; height: 0; visibility: hidden;
+            padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right);
+            padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom);
+        }
+        canvas.emscripten {
+            border: 0 none; background-color: #000; padding: 0; margin: 0;
+            position: absolute; left: 0; top: 0; z-index: 5;
+            touch-action: none; outline: none;
+            image-rendering: auto;
+        }
+        #evo_splash {
+            position: fixed; inset: 0; z-index: 50; display: flex;
+            flex-direction: column; align-items: center; justify-content: center;
+            background: radial-gradient(ellipse at 50% 40%, #1b1f45 0%, #090a18 60%, #05060c 100%);
+        }
+        #evo_logo {
+            font-weight: 900; font-size: min(13vw, 72px); letter-spacing: 2px;
+            background: linear-gradient(180deg, #fff6c8 0%, #ffc54a 45%, #ff7a2a 100%);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+            filter: drop-shadow(0 0 18px rgba(255,150,40,.45));
+        }
+        #evo_sub { margin-top: 4px; font-size: 14px; color: #9aa6d8; letter-spacing: 3px; }
+        #evo_bar { margin-top: 26px; width: min(70vw, 340px); }
+        #progress { width: 100%; height: 10px; -webkit-appearance: none; appearance: none;
+            border: 0; border-radius: 6px; background: #1a1d36; overflow: hidden; }
+        #progress::-webkit-progress-bar { background: #1a1d36; border-radius: 6px; }
+        #progress::-webkit-progress-value { background: linear-gradient(90deg,#ffb238,#ff6a2a); border-radius: 6px; }
+        #status { margin-top: 8px; font-size: 12px; color: #7d86b5; text-align: center; }
+        #evo_msg { margin-top: 10px; font-size: 13px; color: #c9d0f5; min-height: 18px; }
+        #evo_note { margin-top: 6px; font-size: 11px; color: #6c75a3; }
+        #evo_retry { display: none; margin-top: 16px; padding: 10px 26px; border-radius: 12px;
+            font-size: 16px; font-weight: 800; color: #fff; background: #3a4a8a; }
+        #evo_msg.err { color: #ffb4a8; max-width: 86vw; text-align: center; line-height: 1.4; }
+        #evo_tap {
+            display: none; margin-top: 28px; padding: 16px 38px; border-radius: 16px;
+            font-size: 22px; font-weight: 800; color: #1a1200; letter-spacing: 1px;
+            background: linear-gradient(180deg, #ffe07a, #ffaa2a);
+            box-shadow: 0 0 28px rgba(255,170,40,.55);
+            animation: evoPulse 1.2s ease-in-out infinite;
+        }
+        @keyframes evoPulse { 50% { transform: scale(1.06); } }
+        #evo_rotate {
+            display: none; position: fixed; inset: 0; z-index: 100;
+            background: #05060c; color: #fff; flex-direction: column;
+            align-items: center; justify-content: center; text-align: center;
+            font-size: 20px; font-weight: 700; padding: 30px;
+        }
+        #evo_rotate .ph {
+            width: 54px; height: 92px; border: 4px solid #ffc54a; border-radius: 12px;
+            margin-bottom: 26px; animation: evoTurn 1.8s ease-in-out infinite;
+        }
+        @keyframes evoTurn { 0%,20% { transform: rotate(0deg); } 60%,100% { transform: rotate(-90deg); } }
+        #evo_rotate small { display: block; margin-top: 10px; font-size: 14px; font-weight: 400; color: #9aa6d8; }
+        @media (orientation: portrait) { #evo_rotate { display: flex; } }
+        #evo_text {
+            position: fixed; left: 0; top: 0; width: 1px; height: 1px; opacity: 0.01;
+            font-size: 16px; border: 0; padding: 0; z-index: 1; color: transparent;
+            background: transparent; caret-color: transparent;
+        }
+        .hid { display: none !important; }
+    </style>
+</head>
+
+<body>
+    <div id="evo_safe"></div>
+
+    <div id="evo_splash">
+        <div id="evo_logo">EVOLVE ARENA</div>
+        <div id="evo_sub">HAYATTA KAL &middot; GÜÇLEN &middot; EVRİL</div>
+        <div id="evo_bar">
+            <div id="transfer">
+                <progress value="0" max="100" id="progress"></progress>
+                <div class="emscripten" id="status">İndiriliyor...</div>
+            </div>
+        </div>
+        <div id="evo_msg"></div>
+        <div id="evo_note">İlk açılışta ~20 MB iner, biraz bekle. Sonraki açılışlar hızlı.</div>
+        <div id="evo_retry" onclick="location.reload()">YENİDEN DENE</div>
+        <div id="evo_tap">DOKUN VE BAŞLA</div>
+    </div>
+
+    <div id="evo_rotate"><div class="ph"></div>Telefonu yan çevir<small>EvolveArena yatay ekranda oynanır</small></div>
+
+    <canvas class="emscripten" id="canvas" width="1px" height="1px"
+        oncontextmenu="event.preventDefault()" tabindex=1></canvas>
+    <canvas class="emscripten hid" id="canvas3d" width="1280px"
+        height="720px" oncontextmenu="event.preventDefault()" tabindex=1 hidden></canvas>
+
+    <input id="evo_text" type="text" autocomplete="off" autocorrect="off" autocapitalize="off"
+        spellcheck="false" enterkeyhint="done">
+
+    <div id="infobox" class="hid"></div>
+    <div id=html class="hid"></div>
+    <div id=crt class="hid">
+        <div id="system" hidden>
+            <button id="aiostop" disabled></button><button id="aiopaused_true" disabled></button>
+            <button id="aiopaused_false" disabled></button><button id="pygame_mixer_music_pause" disabled></button>
+            <div id=load_min></div><div id=load_avg></div><div id=load_max></div>
+            <button id="load_rst" disabled></button>
+            <div id="level"></div><div id="stateBattery"></div>
+        </div>
+        <div id=box hidden=true><div id="info"></div>
+            <iframe id="iframe" name="iframe" src="about:blank" hidden></iframe></div>
+    </div>
+    <div id="dlg" hidden><input type="file" id="dlg_multifile" multiple accept="image/*"></div>
+    <div id="pyconsole" hidden><div id="terminal"></div></div>
+
+    <script type="application/javascript">
+    // ---- YÜKLEME BEKÇİSİ: takılırsa NEDENİNİ ekrana yazar ----
+    (function(){
+        var errs = [];
+        window.addEventListener("error", function(e){
+            errs.push(((e && e.message) || "hata") + (e && e.filename ? " (" + e.filename.split("/").pop() + ")" : ""));
+        });
+        window.addEventListener("unhandledrejection", function(e){
+            try { errs.push(String(e.reason && (e.reason.message || e.reason))); } catch (x) {}
+        });
+        function say(msg) {
+            var m = document.getElementById("evo_msg");
+            if (m) { m.textContent = msg; m.className = "err"; }
+            var r = document.getElementById("evo_retry"); if (r) r.style.display = "inline-block";
+        }
+        if (location.protocol === "file:") {
+            say("Bu dosya bilgisayarda çift tıklanarak açılmaz. Dosyaları GitHub'a yükle ve " +
+                "https://...github.io/... linkinden aç.");
+            return;
+        }
+        var last = "", since = Date.now(), checked = false;
+        setInterval(function(){
+            var sp = document.getElementById("evo_splash");
+            if (!sp || sp.style.display === "none" || checked) return;
+            var tp = document.getElementById("evo_tap");
+            if (tp && tp.style.display === "flex") { since = Date.now(); return; }
+            var p = document.getElementById("progress"), st = document.getElementById("status"),
+                m = document.getElementById("evo_msg");
+            var key = (p ? p.value : "") + "|" + (st ? st.textContent : "") + "|" + (m ? m.textContent : "");
+            if (key !== last) { last = key; since = Date.now(); return; }
+            if (Date.now() - since < 25000) return;
+            checked = true;
+            var found = [];
+            fetch("game.tar.gz", {method: "HEAD", cache: "no-store"}).then(function(r){
+                if (!r.ok) found.push("game.tar.gz bulunamadı (" + r.status + ") — dosyayı GitHub'a yükle.");
+            }).catch(function(){ found.push("game.tar.gz okunamadı."); }).then(function(){
+                return fetch(config.cdn + "pythons.js", {method: "HEAD", cache: "no-store"}).then(function(r){
+                    if (!r.ok) found.push("Oyun motoru sunucusu cevap vermedi (" + r.status + ").");
+                }).catch(function(){ found.push("Oyun motoru indirilemedi (pygame-web.github.io): internetini kontrol et."); });
+            }).then(function(){
+                if (errs.length) found.push("Hata: " + errs.slice(-2).join(" | "));
+                if (!found.length) found.push("İndirme çok yavaş ya da durdu. İnternetini kontrol edip yeniden dene.");
+                say(found.join("  "));
+            });
+        }, 1000);
+    })();
+
+    globalThis.__canvas_resized = (self, ecw, ech) => {}
+    async function custom_onload(debug_hidden) {}
+    function custom_prerun(){}
+    function custom_postrun(){}
+    function info_inline(data){}
+    function info_online(url) {}
+    function frame_online(url) {}
+    </script>
+</body>
+</html>
